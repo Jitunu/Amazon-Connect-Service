@@ -10,19 +10,16 @@ import com.amazonaws.services.connect.AmazonConnect;
 import com.amazonaws.services.connect.AmazonConnectClient;
 import com.amazonaws.services.connect.model.ListUsersRequest;
 import com.amazonaws.services.connect.model.ListUsersResult;
-import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
+import com.amazonconnect.api.model.User;
+import com.amazonconnect.api.util.AmazonConnectServiceConstant;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-
+import java.util.ArrayList;
 import java.util.Collections;
-
-import static org.springframework.http.HttpMethod.GET;
+import java.util.List;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @Service
@@ -35,7 +32,7 @@ public class AmazonConnectServiceImpl implements AmazonConnectService {
 //    public AmazonConnect amazonConnect;
 
     @Override
-    public String listUser() {
+    public String listUserUsingAPI() {
 //        String serviceUrl = "https://connect.us-east-1.amazonaws.com/users-summary/1dde138d-0d27-4ac2-b726-8409d003c411";
 //        HttpMethod method = GET;
 //        HttpHeaders headers = getHttpHeaders();
@@ -68,17 +65,20 @@ public class AmazonConnectServiceImpl implements AmazonConnectService {
                             "location (~/.aws/credentials), and is in valid format.",
                     e);
         }
-
         //Endpoint = https://connect.us-east-1.amazonaws.com
         AmazonConnect amazonConnect = AmazonConnectClient.builder()
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("connect.us-east-1.amazonaws.com", "us-east-1"))
                 .build();
-        String arn = "arn:aws:connect:us-east-1:831568316818:instance/1dde138d-0d27-4ac2-b726-8409d003c411";
-        ListUsersResult listUsersResult = amazonConnect.listUsers(new ListUsersRequest().withInstanceId(arn));
+        ListUsersResult listUsersResult = amazonConnect.listUsers(new ListUsersRequest().withInstanceId(AmazonConnectServiceConstant.ARN));
+        List<User> userList = new ArrayList<>();
+        listUsersResult.getUserSummaryList().forEach((a) -> {
+            User user =  new User();
+            user.setUserName(a.getUsername());
+            userList.add(user);
+        });
 
-        String str = new ObjectMapper().writeValueAsString(listUsersResult.getUserSummaryList());
-        return str;
+        return new ObjectMapper().writeValueAsString(userList);
 
     }
 

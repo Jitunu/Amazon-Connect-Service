@@ -5,6 +5,6 @@ import org.springframework.stereotype.Service;
 
 
 public interface AmazonConnectService {
-    String listUser();
+    String listUserUsingAPI();
     String listUserUsingSdk() throws Exception;
 }
